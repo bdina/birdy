@@ -27,7 +27,7 @@ module Page {
     </div>
 
   function main_page() {
-    page_template("Birdy", main_page_content)
+    page_template("Birdy", main_page_content, <></>)
   }
 
   function alert(message, cl) {

@@ -10,7 +10,7 @@ abstract type User.info =
     string passwd,
     User.status status,
     list(User.name) follows_users,
-    list(Topic.t) follows_topic
+    list(Topic.t) follows_topics
   }
 
 module User {
@@ -51,12 +51,12 @@ module User {
       }
     x = ?/birdy/users[{username: user.username}]
     match (x) {
-      case {none}:
-        /birdy/users[{username: user.username}] <- user
-        send_registration_email({~activation_code, username:user.username, email: user.email})
-        {success}
-      case {some: _}:
-        {failure: "User with the given name already exists."}
+    case {none}:
+      /birdy/users[{username: user.username}] <- user
+      send_registration_email({~activation_code, username:user.username, email: user.email})
+      {success}
+    case {some: _}:
+      {failure: "User with the given name already exists."}
     }
   }
 
@@ -78,32 +78,32 @@ module User {
            |> Iter.to_list
            |> List.head_opt
     match (user) {
-      case {none}:
-        {failure}
-      case {some: user}:
-        /birdy/users[{username: user.username}] <- {user with status: {active}}
-        {success}
+    case {none}:
+      {failure}
+    case {some: user}:
+      /birdy/users[{username: user.username}] <- {user with status: {active}}
+      {success}
     }
   }
 
   exposed function outcome(User.t, string) login(username, passwd) {
     x = ?/birdy/users[~{username}]
     match (x) {
-      case {none}:
-        {failure: "This user does not exist."}
-      case {some: user}:
-        match (user.status) {
-          case {activation_code: _}:
-            {failure: "You need to activate your account by clicking the link we sent you by email."}
-          case {active}:
-            if (user.passwd == passwd) {
-              user_view = mk_view(user)
-              UserContext.set(logged_user, {user: user_view})
-              {success: user_view}
-            }
-            else
-              {failure: "Incorrect password. Try again."}
+    case {none}:
+      {failure: "This user does not exist."}
+    case {some: user}:
+      match (user.status) {
+      case {activation_code: _}:
+        {failure: "You need to activate your account by clicking the link we sent you by email."}
+      case {active}:
+        if (user.passwd == passwd) {
+          user_view = mk_view(user)
+          UserContext.set(logged_user, {user: user_view})
+          {success: user_view}
         }
+        else
+          {failure: "Incorrect password. Try again."}
+      }
     }
   }
 }
